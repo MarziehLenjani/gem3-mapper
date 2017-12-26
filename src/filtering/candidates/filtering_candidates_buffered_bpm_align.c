@@ -339,6 +339,9 @@ void filtering_candidates_buffered_bpm_align_add(
       filtering_candidates,filtering_candidates_buffered,pattern);
   *gpu_buffer_align_offset = gpu_buffer_bpm_align_get_num_candidates(gpu_buffer_bpm_align); // Store buffer offset
   if (filtering_candidates_buffered->num_canonical_regions != 0) {
+	// Stats
+	gpu_buffer_bpm_align_record_candidates_per_tile(
+	    gpu_buffer_bpm_align,filtering_candidates_buffered->num_canonical_regions);
     // Add the pattern to the buffer (add new queries)
     gpu_buffer_bpm_align_add_pattern(gpu_buffer_bpm_align,pattern);
     // Add all eligible filtering regions

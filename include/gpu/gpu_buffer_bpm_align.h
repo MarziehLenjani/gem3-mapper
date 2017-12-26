@@ -99,7 +99,6 @@ void gpu_buffer_bpm_align_compute_dimensions(
     gpu_buffer_bpm_align_t* const gpu_buffer_bpm_align,
     pattern_t* const pattern,
     const uint64_t num_candidates,
-    const uint64_t candidates_length,
     uint64_t* const total_queries,
     uint64_t* const total_query_entries,
     uint64_t* const total_query_length,

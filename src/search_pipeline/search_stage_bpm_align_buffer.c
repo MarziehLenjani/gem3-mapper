@@ -79,7 +79,6 @@ bool search_stage_bpm_align_buffer_fits(
   gpu_buffer_bpm_align_compute_dimensions(
       gpu_buffer_bpm_align,pattern_end1,
       archive_search_get_num_bpm_align_canonical_candidates(archive_search_end1),
-      archive_search_get_num_bpm_align_candidate_tiles_length(archive_search_end1),
       &total_queries,&total_query_entries,&total_query_length,
       &total_candidates);
   if (archive_search_end2!=NULL) {
@@ -87,7 +86,6 @@ bool search_stage_bpm_align_buffer_fits(
     gpu_buffer_bpm_align_compute_dimensions(
         gpu_buffer_bpm_align,pattern_end2,
         archive_search_get_num_bpm_align_canonical_candidates(archive_search_end2),
-        archive_search_get_num_bpm_align_candidate_tiles_length(archive_search_end2),
         &total_queries,&total_query_entries,&total_query_length,
         &total_candidates);
   }

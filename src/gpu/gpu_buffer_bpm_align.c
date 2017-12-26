@@ -214,7 +214,6 @@ void gpu_buffer_bpm_align_compute_dimensions(
     gpu_buffer_bpm_align_t* const gpu_buffer_bpm_align,
     pattern_t* const pattern,
     const uint64_t num_candidates,
-    const uint64_t candidates_length,
     uint64_t* const total_queries,
     uint64_t* const total_query_entries,
     uint64_t* const total_query_length,
@@ -245,9 +244,10 @@ bool gpu_buffer_bpm_align_fits_in_buffer(
   if((total_candidates == 0) | (total_queries == 0))
     return true;
   // Account for padding
-  const uint64_t total_query_length_padded = total_query_length+(2*GPU_BPM_ALIGN_QUERY_PADDING);
+  const uint64_t total_query_padded_bases = DIV_CEIL(total_query_length, BPM_MAX_TILE_LENGTH)*GPU_BPM_ALIGN_QUERY_PADDING;
+  const uint64_t total_query_length_padded = total_query_length + total_query_padded_bases;
   const uint64_t num_candidates_per_query = DIV_CEIL(total_candidates,total_queries);
-  const uint64_t total_cigar_entries = num_candidates_per_query*(total_query_length_padded+GPU_BPM_ALIGN_QUERY_PADDING);
+  const uint64_t total_cigar_entries = num_candidates_per_query*total_query_length_padded;
   // Check available space in buffer for the pattern
   if (gpu_buffer_bpm_align->num_queries+total_queries > max_queries ||
       gpu_buffer_bpm_align->num_query_entries+total_query_entries > max_query_entries ||
@@ -544,7 +544,6 @@ void gpu_buffer_bpm_align_compute_dimensions(
     gpu_buffer_bpm_align_t* const gpu_buffer_bpm_align,
     pattern_t* const pattern,
     const uint64_t num_candidates,
-    const uint64_t candidates_length,
     uint64_t* const total_queries,
     uint64_t* const total_query_entries,
     uint64_t* const total_query_length,
