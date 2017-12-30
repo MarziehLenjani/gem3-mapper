@@ -289,7 +289,8 @@ void filtering_candidates_buffered_bpm_align_add_filtering_regions(
   const uint64_t id_stats_histo = MIN(num_canonical_regions, GEM_HIST_CAND_ALIGNED-1);
   const uint64_t num_samples_realigned = COUNTER_GET_NUM_SAMPLES(&filtering_candidates->candidates_aligned_histo[id_stats_histo]);
   const uint64_t average_samples_realigned = (uint64_t) ceil(COUNTER_GET_MEAN(&filtering_candidates->candidates_aligned_histo[id_stats_histo]));
-  const uint64_t max_buffered_candidates_aligned = (num_samples_realigned==0) ? select_parameters->max_reported_matches : average_samples_realigned;
+  const uint64_t registered_samples_realigned = (num_samples_realigned==0) ? select_parameters->max_reported_matches : average_samples_realigned;
+  const uint64_t max_buffered_candidates_aligned = MIN(registered_samples_realigned,GEM_HIST_CAND_ALIGNED-1);
   // Traverse all regions and add those accepted
   uint64_t candidate_pos, candidates_added=0;
   for (candidate_pos=0;candidate_pos<num_regions;++candidate_pos) {

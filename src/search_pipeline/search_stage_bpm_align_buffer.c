@@ -76,16 +76,16 @@ bool search_stage_bpm_align_buffer_fits(
   }
   // Calculate the minimum data structures to process the query on the device
   pattern_t* const pattern_end1 = &archive_search_end1->approximate_search.pattern;
+  uint64_t num_canonical_regions = MIN(archive_search_get_num_bpm_align_canonical_candidates(archive_search_end1), GEM_HIST_CAND_ALIGNED-1);
   gpu_buffer_bpm_align_compute_dimensions(
-      gpu_buffer_bpm_align,pattern_end1,
-      archive_search_get_num_bpm_align_canonical_candidates(archive_search_end1),
+      gpu_buffer_bpm_align,pattern_end1,num_canonical_regions,
       &total_queries,&total_query_entries,&total_query_length,
       &total_candidates);
   if (archive_search_end2!=NULL) {
     pattern_t* const pattern_end2 = &archive_search_end2->approximate_search.pattern;
+    uint64_t num_canonical_regions_end2 = MIN(archive_search_get_num_bpm_align_canonical_candidates(archive_search_end2), GEM_HIST_CAND_ALIGNED-1);
     gpu_buffer_bpm_align_compute_dimensions(
-        gpu_buffer_bpm_align,pattern_end2,
-        archive_search_get_num_bpm_align_canonical_candidates(archive_search_end2),
+        gpu_buffer_bpm_align,pattern_end2,num_canonical_regions_end2,
         &total_queries,&total_query_entries,&total_query_length,
         &total_candidates);
   }
