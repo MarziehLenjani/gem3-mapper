@@ -221,9 +221,10 @@ void gpu_buffer_bpm_align_compute_dimensions(
   // Calculate queries' dimensions
   if(num_candidates != 0){
 	const uint64_t num_entries = DIV_CEIL(pattern->key_length,GPU_BPM_ALIGN_ENTRY_LENGTH);
+	const uint64_t query_padded_bases = pattern->pattern_tiled.num_tiles*GPU_BPM_ALIGN_QUERY_PADDING;
 	*total_queries += pattern->pattern_tiled.num_tiles;
 	*total_query_entries += num_entries;
-	*total_query_length += pattern->key_length;
+	*total_query_length += (pattern->key_length+query_padded_bases);
 	// Calculate candidates' dimensions
 	*total_candidates += pattern->pattern_tiled.num_tiles*num_candidates;
   }
@@ -244,10 +245,23 @@ bool gpu_buffer_bpm_align_fits_in_buffer(
   if((total_candidates == 0) | (total_queries == 0))
     return true;
   // Account for padding
-  const uint64_t total_query_padded_bases = DIV_CEIL(total_query_length, BPM_MAX_TILE_LENGTH)*GPU_BPM_ALIGN_QUERY_PADDING;
-  const uint64_t total_query_length_padded = total_query_length + total_query_padded_bases;
+  //const uint64_t total_query_padded_bases = DIV_CEIL(total_query_length, BPM_MAX_TILE_LENGTH)*GPU_BPM_ALIGN_QUERY_PADDING;
+  //const uint64_t total_query_length_padded = total_query_length + total_query_padded_bases;
+  const uint64_t total_query_length_padded = total_query_length;
   const uint64_t num_candidates_per_query = DIV_CEIL(total_candidates,total_queries);
   const uint64_t total_cigar_entries = num_candidates_per_query*total_query_length_padded;
+
+  /*
+  printf("idThread=%u - num_queries: %u - %u (max: %u) \n num_query_entries: %u - %u (max: %u) \n query_buffer_offset: %u - %u (max: %u) \n num_candidates: %u - %u (max: %u) \n num_cigar_entries: %u - %u (max: %u) \n",
+		  (uint32_t)pthread_self(),
+		  (uint32_t)gpu_buffer_bpm_align->num_queries, (uint32_t)gpu_buffer_bpm_align->num_queries+total_queries, (uint32_t)max_queries,
+		  (uint32_t)gpu_buffer_bpm_align->num_query_entries, (uint32_t)gpu_buffer_bpm_align->num_query_entries+total_query_entries, (uint32_t)max_query_entries,
+		  (uint32_t)gpu_buffer_bpm_align->query_buffer_offset, (uint32_t)gpu_buffer_bpm_align->query_buffer_offset+total_query_length_padded, (uint32_t)max_query_buffer_size,
+		  (uint32_t)gpu_buffer_bpm_align->num_candidates, (uint32_t)gpu_buffer_bpm_align->num_candidates+total_candidates, (uint32_t)max_candidates,
+		  (uint32_t)gpu_buffer_bpm_align->num_cigar_entries, (uint32_t)gpu_buffer_bpm_align->num_cigar_entries+total_cigar_entries, (uint32_t)max_cigar_entries);
+  fflush(stdout);
+*/
+
   // Check available space in buffer for the pattern
   if (gpu_buffer_bpm_align->num_queries+total_queries > max_queries ||
       gpu_buffer_bpm_align->num_query_entries+total_query_entries > max_query_entries ||

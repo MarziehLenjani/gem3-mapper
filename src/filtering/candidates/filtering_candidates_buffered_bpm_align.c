@@ -275,22 +275,40 @@ void filtering_candidates_buffered_bpm_align_set_num_canonical_candidates(
   }
 }
 
+uint64_t filtering_candidates_buffered_bpm_align_get_candidates_max_aligned(
+    filtering_candidates_t* const filtering_candidates,
+    filtering_candidates_buffered_t* const filtering_candidates_buffered) {
+  // Parameters
+  search_parameters_t* const search_parameters = filtering_candidates->search_parameters;
+  select_parameters_t* const select_parameters = &search_parameters->select_parameters;
+  const uint64_t num_canonical_regions = filtering_candidates_buffered->num_canonical_regions;
+  //Defining maximum number of realignments on GPU
+  const uint64_t id_stats_histo = MIN(num_canonical_regions, GEM_HIST_CAND_ALIGNED-1);
+  const uint64_t num_samples_realigned = COUNTER_GET_NUM_SAMPLES(&filtering_candidates->candidates_aligned_histo[id_stats_histo]);
+  const uint64_t average_samples_realigned = (uint64_t) ceil(COUNTER_GET_MEAN(&filtering_candidates->candidates_aligned_histo[id_stats_histo]));
+  const uint64_t registered_samples_realigned = (num_samples_realigned==0) ? select_parameters->max_reported_matches : average_samples_realigned;
+  const uint64_t max_buffered_candidates_aligned = MIN(MIN(registered_samples_realigned,GEM_HIST_CAND_ALIGNED-1), num_canonical_regions);
+  return(max_buffered_candidates_aligned);
+}
+
 void filtering_candidates_buffered_bpm_align_add_filtering_regions(
     filtering_candidates_t* const filtering_candidates,
     filtering_candidates_buffered_t* const filtering_candidates_buffered,
     pattern_t* const pattern,
     gpu_buffer_bpm_align_t* const gpu_buffer_bpm_align) {
   // Parameters
-  search_parameters_t* const search_parameters = filtering_candidates->search_parameters;
-  select_parameters_t* const select_parameters = &search_parameters->select_parameters;
-  const uint64_t num_canonical_regions = filtering_candidates_buffered->num_canonical_regions;
+  //search_parameters_t* const search_parameters = filtering_candidates->search_parameters;
+  //select_parameters_t* const select_parameters = &search_parameters->select_parameters;
   const uint64_t num_regions = filtering_candidates_buffered->num_regions;
+  const uint64_t max_buffered_candidates_aligned = filtering_candidates_buffered_bpm_align_get_candidates_max_aligned(filtering_candidates, filtering_candidates_buffered);
   //Defining maximum number of realignments on GPU
-  const uint64_t id_stats_histo = MIN(num_canonical_regions, GEM_HIST_CAND_ALIGNED-1);
-  const uint64_t num_samples_realigned = COUNTER_GET_NUM_SAMPLES(&filtering_candidates->candidates_aligned_histo[id_stats_histo]);
-  const uint64_t average_samples_realigned = (uint64_t) ceil(COUNTER_GET_MEAN(&filtering_candidates->candidates_aligned_histo[id_stats_histo]));
-  const uint64_t registered_samples_realigned = (num_samples_realigned==0) ? select_parameters->max_reported_matches : average_samples_realigned;
-  const uint64_t max_buffered_candidates_aligned = MIN(registered_samples_realigned,GEM_HIST_CAND_ALIGNED-1);
+  //const uint64_t num_canonical_regions = filtering_candidates_buffered->num_canonical_regions;
+  //const uint64_t id_stats_histo = MIN(num_canonical_regions, GEM_HIST_CAND_ALIGNED-1);
+  //const uint64_t num_samples_realigned = COUNTER_GET_NUM_SAMPLES(&filtering_candidates->candidates_aligned_histo[id_stats_histo]);
+  //const uint64_t average_samples_realigned = (uint64_t) ceil(COUNTER_GET_MEAN(&filtering_candidates->candidates_aligned_histo[id_stats_histo]));
+  //const uint64_t registered_samples_realigned = (num_samples_realigned==0) ? select_parameters->max_reported_matches : average_samples_realigned;
+  //const uint64_t max_buffered_candidates_aligned = MIN(registered_samples_realigned,GEM_HIST_CAND_ALIGNED-1);
+  // printf("idThread=%u, REALIGNED CANDIDATES=%d \n", (uint32_t)pthread_self(), max_buffered_candidates_aligned);
   // Traverse all regions and add those accepted
   uint64_t candidate_pos, candidates_added=0;
   for (candidate_pos=0;candidate_pos<num_regions;++candidate_pos) {
@@ -308,11 +326,29 @@ void filtering_candidates_buffered_bpm_align_add_filtering_regions(
       filtering_candidates_buffered_bpm_align_add_region(
           filtering_candidates,filtering_region,
           pattern,gpu_buffer_bpm_align);
+      match_scaffold->scaffold_type = scaffold_region_chain;
       ++candidates_added;
-    } else {
+    }// else {
       // Avoid GPU scaffolding
-      match_scaffold->scaffold_type = scaffold_deferred;
-    }
+    //  match_scaffold->scaffold_type = scaffold_deferred;
+    //}
+  }
+}
+void filtering_candidates_buffered_bpm_align_deferring_regions(
+    filtering_candidates_buffered_t* const filtering_candidates_buffered) {
+  const uint64_t num_regions = filtering_candidates_buffered->num_regions;
+  uint64_t candidate_pos;
+  for (candidate_pos=0;candidate_pos<num_regions;++candidate_pos) {
+    // Fetch region
+    filtering_region_t* const filtering_region = filtering_candidates_buffered->regions[candidate_pos];
+    // Filter out exact-matching regions & not-accepted regions
+    if (filtering_region->status != filtering_region_accepted) continue; // Next
+    if (filtering_region->alignment.distance_min_bound==0) continue; // Next
+    // Retrieve Candidate (if needed)
+    match_scaffold_t* const match_scaffold = &filtering_region->match_scaffold;
+    if (match_scaffold->scaffold_type==scaffold_levenshtein) continue; // Next
+    // Avoid GPU scaffolding
+    match_scaffold->scaffold_type = scaffold_deferred;
   }
 }
 void filtering_candidates_buffered_bpm_align_add(
@@ -323,6 +359,7 @@ void filtering_candidates_buffered_bpm_align_add(
     uint64_t* const gpu_buffer_align_offset) {
   // Check number of pending filtering-regions
   const uint64_t num_regions = filtering_candidates_buffered->num_regions;
+  const uint64_t max_buffered_candidates_aligned = filtering_candidates_buffered_bpm_align_get_candidates_max_aligned(filtering_candidates, filtering_candidates_buffered);
   search_parameters_t* const search_parameters = filtering_candidates->search_parameters;
   if (num_regions==0 || search_parameters->alignment_force_full_swg) {
     filtering_candidates_buffered->num_regions = 0;
@@ -339,7 +376,11 @@ void filtering_candidates_buffered_bpm_align_add(
   filtering_candidates_buffered_bpm_align_discard_subdominant(
       filtering_candidates,filtering_candidates_buffered,pattern);
   *gpu_buffer_align_offset = gpu_buffer_bpm_align_get_num_candidates(gpu_buffer_bpm_align); // Store buffer offset
-  if (filtering_candidates_buffered->num_canonical_regions != 0) {
+	//printf("idThread=%u, ADDING CANONICAL CANDIDATES=%d \n", (uint32_t)pthread_self(), filtering_candidates_buffered->num_canonical_regions);
+	//fflush(stdout);
+  //if (filtering_candidates_buffered->num_canonical_regions != 0) {
+  filtering_candidates_buffered_bpm_align_deferring_regions(filtering_candidates_buffered);
+  if (max_buffered_candidates_aligned != 0) {
 	// Stats
 	gpu_buffer_bpm_align_record_candidates_per_tile(
 	    gpu_buffer_bpm_align,filtering_candidates_buffered->num_canonical_regions);
