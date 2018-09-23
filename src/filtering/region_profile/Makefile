@@ -60,4 +60,4 @@ debug: $(OBJS)
 	
 # General building rule
 $(FOLDER_BUILD)/%.o : %.c
-	$(CC) $(GEM_FLAGS) $(PATH_INCLUDE) -c $< -o $@
+	$(CC) $(GEM_FLAGS) $(DEF_CUDA) $(PATH_INCLUDE) -c $< -o $@

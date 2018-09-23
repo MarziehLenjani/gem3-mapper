@@ -45,6 +45,14 @@
  */
 #define FILTERING_CANDIDATES_KMER_FILTER_MIN_KEY_LENGTH 250000
 
+#ifdef	GEM_DEBUG
+  #define	FILTERING_CANDIDATES_KMER_FILTER_STAGE_ACTIVE_KEY_LENGTH 1
+#else
+  #define	FILTERING_CANDIDATES_KMER_FILTER_STAGE_ACTIVE_KEY_LENGTH FILTERING_CANDIDATES_KMER_FILTER_MIN_KEY_LENGTH
+#endif
+
+
+
 /*
  * Kmer-Filter Buffered Add
  */
@@ -111,7 +119,7 @@ bool filtering_candidates_buffered_kmer_filter_defer_regions(
 {
 	// Parameters
 	const pattern_tiled_t* const pattern_tiled = &pattern->pattern_tiled;
-	return(pattern->key_length < FILTERING_CANDIDATES_KMER_FILTER_MIN_KEY_LENGTH ||
+	return(pattern->key_length < FILTERING_CANDIDATES_KMER_FILTER_STAGE_ACTIVE_KEY_LENGTH ||
 	       !pattern_tiled->kmer_filter_nway.enabled);
 }
 void filtering_candidates_buffered_kmer_filter_add_deferred_regions(

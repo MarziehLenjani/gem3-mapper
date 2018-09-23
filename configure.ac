@@ -1,6 +1,7 @@
 ###############################################################################
 #  GEM-Mapper v3 (GEM3)
-#  Copyright (c) 2011-2017 by Santiago Marco-Sola  <santiagomsola@gmail.com>
+#  Copyright (c) 2011-2018 by Santiago Marco-Sola  <santiagomsola@gmail.com>
+#  Copyright (c) 2011-2018 by Alejandro Chacon  <alejandro.chacond@gmail.com>
 #
 #  This file is part of GEM-Mapper v3 (GEM3).
 #
@@ -149,7 +150,7 @@ if test "$enable_cuda" != "no" ; then
    
   AC_CHECK_FILE([$cuda_lib_path],
   [  
-    LDFLAGS+=" -L$cuda_lib_path"
+    LDFLAGS+=" -L$cuda_lib_path -L$cuda_lib_path/stubs"
     AC_CHECK_LIB([cuda], [main], , [VALID_CUDA=no])
     AC_CHECK_LIB([cudart], [main], , [VALID_CUDA=no])
   ],

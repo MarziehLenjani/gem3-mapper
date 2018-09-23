@@ -45,11 +45,11 @@
 /*
  * Debug GPU results (from GPU-Buffers at each stage)
  */
-//#define GPU_CHECK_REGION_PROFILE
-//#define GPU_CHECK_DECODE_POSITIONS
-//#define GPU_CHECK_KMER_FILTER
-//#define GPU_CHECK_BPM_DISTANCE
-//#define GPU_CHECK_BPM_ALIGN
+// #define GPU_CHECK_REGION_PROFILE
+// #define GPU_CHECK_DECODE_POSITIONS
+// #define GPU_CHECK_KMER_FILTER
+// #define GPU_CHECK_BPM_DISTANCE
+// #define GPU_CHECK_BPM_ALIGN
 
 /*
  * GPU Support

@@ -205,7 +205,6 @@ void filtering_candidates_add_positions_from_interval(
     filtering_position->region_index_position = index_position;
     filtering_position->align_distance = exact_match ? 0 : ALIGN_DISTANCE_UNKNOWN;
   }
-
 }
 /*
  * Adding Region (filtering regions)

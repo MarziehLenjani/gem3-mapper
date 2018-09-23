@@ -9,7 +9,7 @@ GEM3 is a high-performance mapping tool for aligning sequenced reads against lar
 ### 1.2. GETTING STARTED
 
 ```
-git clone --recursive https://github.com/smarco/gem3-mapper.git gem3-mapper
+git clone --recursive https://github.com/achacond/gem3-mapper.git gem3-mapper
 cd gem3-mapper
 ./configure
 make
@@ -233,7 +233,7 @@ Special Contributors: Simon Heath, Jordi Camps.
 ## 4. REPORTING BUGS
 
 Feedback and bug reporting it's highly appreciated. 
-Please report any issue or suggestion on github, or by email to the main developer (santiagomsola@gmail.com) 
+Please report any issue or suggestion on github or by email (alejandro.chacond@gmail.com) 
 
 ## 5. LICENSE AND CITATION
 

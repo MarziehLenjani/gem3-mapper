@@ -117,7 +117,8 @@ void region_profile_query_character(
     uint64_t* const lo,
     uint64_t* const hi,
     const uint8_t enc_char) {
-  if (!rank_mquery_is_exhausted(rank_mquery)) {
+  #if !defined(HAVE_CUDA)
+    if (!rank_mquery_is_exhausted(rank_mquery)) {
     rank_mtable_t* const rank_mtable = fm_index->rank_table;
     const uint64_t min_matching_depth = rank_mtable->min_matching_depth;
     rank_mquery_add_char(rank_mtable,rank_mquery,enc_char);
@@ -125,6 +126,7 @@ void region_profile_query_character(
       rank_mtable_fetch(rank_mtable,rank_mquery,lo,hi);
     }
   } else {
+  #endif
     bwt_t* const bwt = fm_index->bwt;
     if (gem_expect_false((*lo/64) == (*hi/64) /*bwt_is_same_bucket(*lo,*hi)*/)) {
       /*
@@ -173,7 +175,9 @@ void region_profile_query_character(
                                & (block_mem_hi[4] ^ xor_table_1[enc_char]);
       // Return rank
       *hi = sum_counters_hi + POPCOUNT_64((bitmap_hi & uint64_mask_ones[(block_mod_hi)]));
+  #if !defined(HAVE_CUDA)
     }
+  #endif
   }
 }
 void region_profile_query_regions(
